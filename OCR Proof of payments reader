@@ -1,0 +1,262 @@
+{
+  "name": "Lectura de comprobantes - Oasis",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "Body",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "77d34ba8-b341-45c8-94d7-5e5bded63bf8",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=### Rol\nEres una herramienta diseñada para leer comprobantes de pago que llegan en imagen o pdf y luego tu recibes la infromación pasada a texto con OCR. \n\n### Debes:\n- Identificar el monto recibido.\n- Devolver un solo output breve y conciso en formato texto con estos dos datos.\n\n### NUNCA \n- Inventes información falsa. Si no logras entender solo informalo en el output.\n- Traigas como output información que no corresponda al monto y al destinatario de la transferencia.\n\n### Input:\n{{ $json.extractedText }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        672,
+        0
+      ],
+      "id": "9cef8f35-2e27-4a82-bec2-22b93c03546a",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wH9YbK4Q24W6xnB6",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Body.type }}",
+                    "rightValue": "document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ac508df5-4e1b-4f44-b329-7cf6be35acb3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "603b0d89-1f0d-461e-98a5-e3f4431843ae",
+                    "leftValue": "={{ $json.Body.type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Imagen"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3f609cba-1bb4-4ba1-abf6-e9387829dc2f",
+      "name": "Formato"
+    },
+    {
+      "parameters": {
+        "inputType": "url",
+        "url": "={{ $('When Executed by Another Workflow').item.json.Body.document.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "7de9f6e6-f9ea-42d0-b04a-c5f8d26410b0",
+      "name": "Leer PDF",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "LkOWZ9Kiux49qHv6",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputType": "url",
+        "url": "={{ $('When Executed by Another Workflow').item.json.Body.image.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [
+        448,
+        112
+      ],
+      "id": "5a9bd1ee-8bc6-40aa-a0a5-c5001e3ecfc6",
+      "name": "Leer imagen",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "LkOWZ9Kiux49qHv6",
+          "name": "Mistral Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "Body": {
+            "id": "693b3af7d10932249b147415",
+            "wamid": "wamid.HBgNNTQ5Mzg4NTg4NTA5ORUCABIYFjNFQjBDMkFGQTY4MURBNzM3MUU4OEYA",
+            "wabaId": "1536910314184580",
+            "from": "+5493885885099",
+            "customerProfile": {
+              "name": "Leandro Alfaro"
+            },
+            "to": "+33652552966",
+            "sendTime": "2025-12-11T21:43:17.000Z",
+            "type": "image",
+            "image": {
+              "link": "https://api.ycloud.com/v2/whatsapp/media/download/867809072452820?sig=t%3D1765489397%2Cs%3D0ec34d07c03b98415a922d7dcc94e4ba5bec2d997b8ae12a710e61af6c6d44a4&payload=eyJpZCI6Ijg2NzgwOTA3MjQ1MjgyMCIsIndhYmFJZCI6IjE1MzY5MTAzMTQxODQ1ODAiLCJ3YW1pZCI6IndhbWlkLkhCZ05OVFE1TXpnNE5UZzROVEE1T1JVQ0FCSVlGak5GUWpCRE1rRkdRVFk0TVVSQk56TTNNVVU0T0VZQSIsIm1pbWVUeXBlIjoiaW1hZ2UvanBlZyIsInNoYTI1NiI6IlVQNjYvQmtzQmkxRk1hdDhna2g3VWxCc0RUc1NZYmFBSS9PVHpsQ014bjA9In0",
+              "id": "867809072452820",
+              "sha256": "UP66/BksBi1FMat8gkh7UlBsDTsSYbaAI/OTzlCMxn0=",
+              "mime_type": "image/jpeg"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Formato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formato": {
+      "main": [
+        [
+          {
+            "node": "Leer PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leer imagen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer PDF": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer imagen": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "be58b638-9b8c-41b8-af6d-f7127a5d2776",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d9ec5fae627f6b8529df3009e7f0adca7c644b818b17f145399842446022b12b"
+  },
+  "id": "PwBz6quouDBtcZz8",
+  "tags": [
+    {
+      "updatedAt": "2025-10-28T19:25:54.206Z",
+      "createdAt": "2025-10-28T19:25:54.206Z",
+      "id": "GwSWFqDLf7J9Sc1b",
+      "name": "Oasis"
+    }
+  ]
+}
